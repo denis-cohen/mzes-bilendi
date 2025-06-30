@@ -4,7 +4,7 @@ dat <- rio::import(bilendi_dta_path)
 
 ## Filter to (de facto) completes
 dat_proc <- dat %>%
-  dplyr::filter(status == 3 | (!is.na(vdropout) & vdropout >= 71))
+  dplyr::filter(status == 3 | (status == 4 & !is.na(vdropout) & vdropout >= 71))
 
 
 ## Open-text/character columns ----
