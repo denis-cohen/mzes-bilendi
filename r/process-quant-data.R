@@ -1,112 +1,8 @@
 load("dat/processed-data.rdata")
 dat <- dat_quant %>% 
   dplyr::rename(
-    #self_discri_sup = v_147,
-    #work_atmos = v_16,
-    #work_condi = v_17,
-    #covid_resea = v_21,
-    #covid_teach = v_22,
-    #covid_admin = v_23,
-    #covid_neg_psych = v_27,
-    #covid_neg_famil = v_28,
-    #covid_neg_equip = v_29,
-    #covid_neg_socia = v_30,
-    #covid_neg_other = v_32,
-    #self_insult = v_38,
-    #self_threat = v_39,
-    #self_molest = v_40,
-    #self_discri = v_41,
-    #self_none   = v_8111f,
-    #self_insult_col = v_140,
-    #self_insult_sup = v_144,
-    #self_insult_oth = v_148,
-    #self_insult_ref = v_152,
-    #self_threat_col = v_141,
-    #self_threat_sup = v_145,
-    #self_threat_oth = v_149,
-    #self_threat_ref = v_153,
-    #self_molest_col = v_142,
-    #self_molest_sup = v_146,
-    #self_molest_oth = v_150,
-    #self_molest_ref = v_154,
-    #self_discri_col = v_143,
-    #self_discri_oth = v_151,
-    #self_discri_ref = v_155,
-    #self_insult_freq = v_a04c0,
-    #self_threat_freq = v_06bd1,
-    #self_molest_freq = v_19cba,
-    #self_discri_freq = v_983a0,
-    #self_reason_gender = v_49,
-    #self_reason_parent = v_50,
-    #self_reason_1stgen = v_51,
-    #self_reason_handic = v_52,
-    #self_reason_lgbtq  = v_53,
-    #self_reason_ethnic = v_54,
-    #self_reason_relig  = v_55,
-    #self_reason_citiz  = v_56,
-    #self_reason_lang   = v_57,
-    #self_reason_occup  = v_58,
-    #self_reason_appear = v_59,
-    #self_reason_other  = v_60,
-    #self_reason_refuse = v_61,
-    #self_reason_none   = v_62,
-    #self_conseq_career = v_65,
-    #self_support = v_67,
-    #self_support_col = v_68,
-    #self_support_dep = v_69,
-    #self_support_eoo = v_70,
-    #self_support_sup = v_71,
-    #self_support_adm = v_72,
-    #self_support_fam = v_73,
-    #self_support_oth = v_74,
-    #self_nosup_fear = v_76,
-    #self_nosup_ineffective = v_77,
-    #self_nosup_dkwhere = v_78,
-    #self_nosup_other = v_79,
-    #self_conseq_offender = v_81,
-    #others_insult = v_82,
-    #others_threat = v_83,
-    #others_molest = v_84,
-    #others_discri = v_85,
-    #others_none = v_156,
-    #others_insult_col = v_169,
-    #others_insult_sup = v_173,
-    #others_insult_oth = v_177,
-    #others_insult_ref = v_181,
-    #others_threat_col = v_170,
-    #others_threat_sup = v_174,
-    #others_threat_oth = v_178,
-    #others_threat_ref = v_182,
-    #others_molest_col = v_171,
-    #others_molest_sup = v_175,
-    #others_molest_oth = v_179,
-    #others_molest_ref = v_183,
-    #others_discri_col = v_172,
-    #others_discri_sup = v_176,
-    #others_discri_oth = v_180,
-    #others_discri_ref = v_184,
-    #others_insult_freq = v_120,
-    #others_threat_freq = v_8e7ef,
-    #others_molest_freq = v_f7e25,
-    #others_discri_freq = v_068d7,
-    #others_reason_gender = v_93,
-    #others_reason_parent = v_94,
-    #others_reason_1stgen = v_95,
-    #others_reason_handic = v_96,
-    #others_reason_lgbtq  = v_97,
-    #others_reason_ethnic = v_98,
-    #others_reason_relig  = v_99,
-    #others_reason_citiz  = v_100,
-    #others_reason_lang   = v_101,
-    #others_reason_occup  = v_102,
-    #others_reason_appear = v_103,
-    #others_reason_other  = v_104,
-    #others_reason_refuse = v_185,
-    #others_reason_none   = v_106,
-    #others_conseq_career = v_107,
-    #others_conseq_offender = v_108,
     personal_occup = V11_1,
-    personal_gender = V11_2, # open text response if other(?) - needs work
+    personal_gender = V11_2,
     personal_genderbirth = V11_3, # new
     personal_parent = V11_4r1,
     personal_1stgen = V11_4r2,
@@ -119,9 +15,19 @@ dat <- dat_quant %>%
     personal_other  = V11_4r9,
     personal_none   = V11_4r10,
     personal_refuse = V11_4r11,
-    #complete = c_0006
   ) %>% 
+  # gender variable including open response ("other")
+  dplyr::mutate(
+    personal_gender_incl_open = factor(
+      dplyr::case_when(personal_gender == 1 ~ "Female",
+                       personal_gender == 2 ~ "Male",
+                       personal_gender == 3 ~ "Non-binary or gender-queer",
+                       personal_gender == 4 ~ "Agender",
+                       personal_gender == 5 ~ V11_2r5oe,
+                       personal_gender == 6 ~ "Prefer not to say")
+  )) %>%
   dplyr::rowwise() %>%
+  # Counter diversity characteristics (excl. gender) 
   dplyr::mutate(num_div = sum(
     c(
       personal_parent,
@@ -137,17 +43,117 @@ dat <- dat_quant %>%
     na.rm = TRUE
   )) %>%
   dplyr::mutate(
-    num_div_incl_nonbin = dplyr::if_else(personal_gender %in% c(3),
+    personal_gender_cis_male = dplyr::case_when(
+      # Male + transgender
+      personal_gender == 2 & personal_genderbirth == 2 ~ 1,
+      # Female/Non-binary or gender queer/agender/other + cis/transgender
+      personal_gender %in% c(1,3,4,5) & personal_genderbirth %in% c(1,2) ~ 1,
+      # prefer not to say gender or prefer not to say transgender
+      personal_gender == 6 | personal_genderbirth == 3 ~ NA_integer_
+    )
+  ) %>%
+  dplyr::mutate(
+    # counter diversity characteristics, incl. non-binary
+    num_div_incl_nonbin = dplyr::if_else(personal_gender == 3,
                                          num_div + 1L,
                                          num_div),
-    num_div_incl_nonmale = dplyr::if_else(personal_gender %in% c(1, 3, 4, 5), # incl. agender (4), other (5)
-                                          num_div + 1L,
-                                          num_div)
+    # counter diversity characteristics, incl. non-cis male (this was "nonmale" in 2022)
+    # non-cis male includes "female" (1), "non-binary or gender-queer" (3), 
+    #                       "agender" (4), "other" (5), and "male"+transgender
+    num_div_incl_noncis_male = dplyr::if_else(personal_gender_cis_male == 1,
+                                              num_div + 1L,
+                                              num_div)
   ) %>%
   dplyr::ungroup() %>%
-  dplyr::mutate_at(.vars = vars(starts_with("num_div")),
-                   .funs = ~ifelse(personal_refuse == 1 | 
-                                     personal_gender == 6 | # new: NA if prefer not to say gender identity/gender birth
+  dplyr::mutate_at(.vars = vars("num_div"),
+                   .funs = ~ifelse(personal_refuse == 1, NA_integer_, .)) %>%
+  dplyr::mutate_at(.vars = vars("num_div_incl_nonbin"),
+                   .funs = ~ifelse(personal_refuse == 1 |
+                                     personal_gender == 6, NA_integer_, .)) %>%
+  dplyr::mutate_at(.vars = vars("num_div_incl_noncis_male"),
+                   .funs = ~ifelse(personal_refuse == 1 |
+                                     personal_gender == 6 |
                                      personal_genderbirth == 3, NA_integer_, .)) %>%
-  dplyr::mutate_at(.vars = vars(starts_with("num_div")),
-                   .funs = ~ifelse(. > 3, 3, .))
+  # Cap counters at 3 (should we do this again?)
+  #dplyr::mutate_at(.vars = vars(starts_with("num_div")),
+  #                 .funs = ~ifelse(. > 3, 3, .)) %>%
+  #dplyr::mutate_at(.vars = vars(starts_with("num_div")),
+  #                 .funs = ~ factor(., 
+  #                                  levels = c(0:3),
+  #                                  labels = c(0:2, "3 or more"))) %>%
+  
+  # Post-hoc filter enforcement
+  # V2_2 to V2_8: office space
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(all_of(c("V2_2", "V2_3", "V2_4", "V2_6", "V2_8")),
+                starts_with("V2_7r")),
+      .fns = ~ ifelse(V2_1 %in% c(3, 4), NA, .) # !!! check whether conditions is correct !!!
+    )
+  ) %>%
+  # V5_* qualification phase
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(all_of(c("V5_4", "V5_5", "V5_6", "V5_7", "V5_10")), 
+                starts_with("V5_2"),
+                starts_with("V5_3"),
+                starts_with("V5_8"),
+                starts_with("V5_9"),
+                starts_with("V5_11"),
+                starts_with("V5_12")),
+      .fns = ~ ifelse(V5_1 %in% c(2, 3), NA, .) # !!! check whether conditions is correct !!!
+    )
+  ) %>%
+  # V6_* negative experiences
+  dplyr::mutate(
+    neg_experiences_sum = rowSums(
+      dplyr::across(all_of(c("V6_1r1",
+                             "V6_1r2",
+                             "V6_1r3",
+                             "V6_1r4",
+                             "V6_1r5"))),
+      na.rm = TRUE
+    )
+  ) %>%
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(all_of(c("V6_8", "V6_6", "V6_8", "V6_12")),
+                starts_with("V6_2r"),
+                starts_with("V6_3r"),
+                starts_with("V6_4r")),
+      .fns = ~ ifelse(neg_experiences_sum > 0, ., NA) # !!! check whether conditions is correct !!!
+    )
+  ) %>%
+  # V6_* negative experiences, seeking help
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(starts_with("V6_9r")),
+      .fns = ~ ifelse(V6_8 %in% c(1, 3), NA, .) # !!! check whether conditions is correct !!!
+    )
+  ) %>%
+  # V6_* negative experiences, no help
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(starts_with("V6_11r")),
+      .fns = ~ ifelse(V6_8 %in% c(2, 3), NA, .) # !!! check whether conditions is correct !!!
+    )
+  ) %>%
+  # V7_* negative experiences, colleagues
+  dplyr::mutate(
+    neg_experiences_colleagues_sum = rowSums(
+      dplyr::across(all_of(c("V7_1r1",
+                             "V7_1r2",
+                             "V7_1r3",
+                             "V7_1r4"))),
+      na.rm = TRUE
+    )
+  ) %>%
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(all_of(c("V7_5", "V7_6")),
+                starts_with("V7_2r"),
+                starts_with("V7_3r"),
+                starts_with("V7_4r")),
+      .fns = ~ ifelse(neg_experiences_colleagues_sum > 0, ., NA) # !!! check whether conditions is correct !!!
+    )
+  )
