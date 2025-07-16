@@ -170,23 +170,31 @@ dat_qual <- dat_proc %>%
   )
 
 ## Extract labels ----
-labels_qual <- dat_qual %>%
-  dplyr::select(dplyr::ends_with("r1")) %>%
-  purrr::map_chr(sjlabelled::get_label)
+dat_qual_unique <- dat_qual %>%
+  dplyr::select(-dplyr::matches("r[2-8]$"))
+labels_qual <- tibble::tibble(
+    column = names(dat_qual_unique),
+    label = sapply(dat_qual_unique, sjlabelled::get_label)
+  )
 
 
 
 # Numeric/factor columns ----
 ## Selection ----
 dat_quant <- dat_proc %>%
-  dplyr::select(dplyr::matches("^V", ignore.case = FALSE)) %>%
+  dplyr::select(dplyr::matches("^V", ignore.case = FALSE),
+                dplyr::contains("neg_exp")) %>%
   dplyr::select(-dplyr::all_of(names(dat_qual))) %>%
-  dplyr::select(V1_1:V12_1r8)
+  dplyr::select(V1_1:V11_5, dplyr::contains("neg_exp"))
 
 
 ## Extract labels ----
-labels_quant <- dat_quant %>%
-  purrr::map_chr(sjlabelled::get_label)
+dat_quant_unique <- dat_quant %>%
+  dplyr::select(-dplyr::matches("r[2-8]$"))
+labels_quant <- tibble::tibble(
+  column = names(dat_quant_unique),
+  label = sapply(dat_quant_unique, sjlabelled::get_label)
+)
 
 
 ## Generated variables ----

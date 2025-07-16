@@ -1,3 +1,6 @@
+# Flag for exporting only conditioning vars ----
+cond_only <- TRUE
+
 # Import pre-processed data ----
 load("dat/processed-data.rdata")
 
@@ -22,14 +25,28 @@ continuous_vars <- c("V1_1",
                      "V5_4",
                      "V5_6",
                      "V5_7",
-                     "V5_10")
+                     "V5_10",
+                     "num_div",
+                     "num_div_incl_nonbin",
+                     "num_div_incl_noncis_male")
 categorical_vars <- quantitative_vars[!(quantitative_vars %in% continuous_vars)]
 
+## Identify conditioning variables ----
+conditioning_vars <- c(
+  categorical_vars[stringr::str_detect(categorical_vars, "personal|neg_exp|num_div")],
+  "V11_5"
+)
 
 # Generate tables ----
+if (cond_only) {
+  loop_vars <- conditioning_vars
+} else {
+  loop_vars <- quantitative_vars
+}
+
 # Tabulate and append
 univariate_summary <- tidyr::tibble()
-for (var in quantitative_vars) {
+for (var in loop_vars) {
   question <- sjlabelled::get_label(dat_quant[[var]])
   frequency_distribution <- dat_quant %>%
     dplyr::select(dplyr::all_of(var)) %>%
@@ -74,6 +91,6 @@ for (var in quantitative_vars) {
                                          frequency_distribution)
 }
 
-# Export
+# Export ----
 univariate_summary %>%
   readr::write_excel_csv("csv/univariate/univariate-summary.csv")
