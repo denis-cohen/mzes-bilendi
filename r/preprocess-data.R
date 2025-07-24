@@ -1,3 +1,19 @@
+# Helper functions ----
+## Inspection tool for joint distributions of labelled data ----
+quick_glance <- function(..., labels = TRUE, data = dat_quant) {
+  withr::local_options(list(na.print = NULL))
+  if (labels) {
+    data %>%
+      dplyr::mutate(dplyr::across(c(...), ~ sjlabelled::to_label(., prefix = TRUE))) %>%
+      dplyr::count(...) %>%
+      print(n = Inf)
+  } else {
+    data %>%
+      dplyr::count(...) %>%
+      print(n = Inf)
+  }
+}
+
 # Data import ----
 # Load
 dat <- rio::import(bilendi_dta_path)
@@ -215,16 +231,14 @@ dat_quant <- dat_quant %>%
     personal_other  = V11_4r9,
     personal_none   = V11_4r10,
     personal_refuse = V11_4r11,
+    personal_length_employ = V11_5 # new
   ) %>%
   # gender variable including open response ("other")
   dplyr::mutate(personal_gender_incl_open = factor(
     dplyr::case_when(
-      personal_gender == 1 ~ "Female",
-      personal_gender == 2 ~ "Male",
-      personal_gender == 3 ~ "Non-binary or gender-queer",
-      personal_gender == 4 ~ "Agender",
+      personal_gender %in% 1:4 ~ sjlabelled::to_label(personal_gender),
       personal_gender == 5 ~ V11_2r5oe,
-      personal_gender == 6 ~ "Prefer not to say"
+      personal_gender == 6 ~ NA_character_
     )
   )) %>%
   dplyr::rowwise() %>%
@@ -244,23 +258,25 @@ dat_quant <- dat_quant %>%
     na.rm = TRUE
   )) %>%
   dplyr::mutate(
+    personal_gender_trichotomous = dplyr::case_when(
+      personal_gender == 1 & personal_genderbirth == 1 ~ "cis women",
+      personal_gender == 2 & personal_genderbirth == 1 ~ "cis men",
+      personal_gender %in% 4:5 | personal_genderbirth == 2 ~ "TQIA*",
+      personal_gender == 6 | personal_genderbirth == 3 ~ NA_character_
+    ),
     personal_gender_cis_male = dplyr::case_when(
-      # Male + transgender
-      personal_gender == 2 & personal_genderbirth == 2 ~ 1,
-      # Female/Non-binary or gender queer/agender/other + cis/transgender
-      personal_gender %in% c(1, 3, 4, 5) &
-        personal_genderbirth %in% c(1, 2) ~ 0,
-      # prefer not to say gender or prefer not to say transgender
-      personal_gender == 6 | personal_genderbirth == 3 ~ NA_integer_
-    )
+      personal_gender_trichotomous == "cis men" ~ "cis men",
+      personal_gender_trichotomous %in% c("cis women", "TQIA*") ~ "women and TQIA*",
+      TRUE ~ NA_character_
+    ),
   ) %>%
   dplyr::mutate(
     # counter diversity characteristics, incl. non-binary
-    num_div_incl_nonbin = dplyr::if_else(personal_gender == 3, num_div + 1L, num_div),
+    num_div_incl_nonbin = dplyr::if_else(personal_gender_trichotomous == "TQIA*", num_div + 1L, num_div),
     # counter diversity characteristics, incl. non-cis male (this was "nonmale" in 2022)
     # non-cis male includes "female" (1), "non-binary or gender-queer" (3),
     #                       "agender" (4), "other" (5), and "male"+transgender
-    num_div_incl_noncis_male = dplyr::if_else(personal_gender_cis_male == 1, num_div + 1L, num_div)
+    num_div_incl_noncis_male = dplyr::if_else(personal_gender_cis_male == "women and TQIA*", num_div + 1L, num_div)
   ) %>%
   dplyr::ungroup() %>%
   dplyr::mutate_at(

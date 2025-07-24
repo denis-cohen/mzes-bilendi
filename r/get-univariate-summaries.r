@@ -33,8 +33,7 @@ categorical_vars <- quantitative_vars[!(quantitative_vars %in% continuous_vars)]
 
 ## Identify conditioning variables ----
 conditioning_vars <- c(
-  categorical_vars[stringr::str_detect(categorical_vars, "personal|neg_exp|num_div")],
-  "V11_5"
+  categorical_vars[stringr::str_detect(categorical_vars, "personal|neg_exp|num_div")]
 )
 
 # Generate tables ----
@@ -92,5 +91,10 @@ for (var in loop_vars) {
 }
 
 # Export ----
-univariate_summary %>%
-  readr::write_excel_csv("csv/univariate/univariate-summary.csv")
+if (cond_only) {
+  univariate_summary %>%
+    readr::write_excel_csv("csv/univariate/univariate-summary-conditioning-vars.csv")
+} else {
+  univariate_summary %>%
+    readr::write_excel_csv("csv/univariate/univariate-summary.csv")
+}
