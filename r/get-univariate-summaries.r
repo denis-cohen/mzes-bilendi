@@ -33,7 +33,8 @@ categorical_vars <- quantitative_vars[!(quantitative_vars %in% continuous_vars)]
 
 ## Identify conditioning variables ----
 conditioning_vars <- c(
-  categorical_vars[stringr::str_detect(categorical_vars, "personal|neg_exp|num_div")]
+  categorical_vars[stringr::str_detect(categorical_vars, "personal|neg_exp|num_div")],
+  "V5_1" # to determine number of Q-phase in the sample (block 5)
 )
 
 # Generate tables ----
