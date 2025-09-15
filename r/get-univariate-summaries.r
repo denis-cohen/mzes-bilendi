@@ -31,11 +31,34 @@ continuous_vars <- c("V1_1",
                      "num_div_incl_noncis_male")
 categorical_vars <- quantitative_vars[!(quantitative_vars %in% continuous_vars)]
 
-## Identify conditioning variables ----
-conditioning_vars <- c(
+## Identify all possible conditioning variables ----
+conditioning_vars_pool <- c(
   categorical_vars[stringr::str_detect(categorical_vars, "personal|neg_exp|num_div")],
   "V5_1" # to determine number of Q-phase in the sample (block 5)
 )
+
+# Conditioning variables that meet the N>=5 criterion
+conditioning_vars <- c(
+  "personal_occup_condition",
+  "personal_gender_cis_male",
+  "personal_parent",
+  "personal_1stgen",
+  "personal_lgbtq",
+  "personal_handic",
+  "personal_ethnic",
+  "personal_citiz",
+  "personal_length_employ", # 2x NA, problem?
+  "neg_experiences_sum",
+  "any_neg_experiences",
+  "any_neg_experiences_colleagues",
+  "num_div_capped",
+  "num_div_incl_nonbin_capped",
+  "V5_1"
+)
+
+# variables that do not meet the N>=5 criterion
+conditioning_vars_pool[!(conditioning_vars_pool %in% conditioning_vars)]
+
 
 # Generate tables ----
 if (cond_only) {

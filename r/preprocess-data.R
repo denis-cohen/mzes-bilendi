@@ -17,7 +17,7 @@ quick_glance <- function(..., labels = TRUE, data = dat_quant) {
 # Data import ----
 # Load
 dat <- rio::import(bilendi_dta_path)
-
+#dat <- rio::import("dat-pretest/Mitarbeiter_Befragung_EN_Dummy_Data.dta")
 
 # Filter to (de facto) completes ----
 dat_proc <- dat %>%
@@ -304,6 +304,14 @@ dat_quant <- dat_quant %>%
   dplyr::mutate_at(
     .vars = vars(starts_with("num_div") & ends_with("capped")),
     .funs = ~ factor(., levels = c(0:3), labels = c(0:2, "3 or more"))
+  ) %>%
+  # create residual categories for personal occupation if N<5
+  dplyr::mutate(
+    personal_occup_condition = dplyr::case_when(
+      personal_occup == 2 ~ "Doktorand*in",
+      personal_occup == 3 ~ "Postdoktorand*in",
+      personal_occup %in% c(1, 4, 5, 6, 7) ~ "other/refusal" # Studentische Hilfskraft, Professor*in, Verwaltung/Infrastruktur, Other, Möchte ich nicht sagen
+    )
   )
 
 # ---- Save ----

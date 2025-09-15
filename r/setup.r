@@ -9,5 +9,6 @@ pacman::p_load(
   viridisLite,
   tidyr,
   rio,
-  sjlabelled
+  sjlabelled,
+  sjmisc
 )
