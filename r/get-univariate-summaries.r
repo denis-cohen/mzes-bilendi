@@ -1,5 +1,5 @@
 # Flag for exporting only conditioning vars ----
-cond_only <- TRUE
+cond_only <- FALSE
 
 # Import pre-processed data ----
 load("dat/processed-data.rdata")

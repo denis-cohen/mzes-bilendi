@@ -88,7 +88,7 @@ for (var in main_quantitative_vars) {
       } else {
         frequency_distribution <- frequency_distribution %>%
           dplyr::group_by(subgroup, .drop = FALSE) %>%
-          mutate(
+          dplyr::mutate(
             mean = freq / sum(freq),
             std_dev = NA_real_,
             median = NA_real_,
