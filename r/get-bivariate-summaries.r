@@ -24,7 +24,7 @@ conditioning_vars <- c(
   "personal_handic",
   "personal_ethnic",
   "personal_citiz",
-  "personal_length_employ", # 2x NA, problem?
+  "personal_length_employ", 
   "neg_experiences_sum",
   "any_neg_experiences",
   "any_neg_experiences_colleagues",
