@@ -113,7 +113,18 @@ dat_proc <- dat_proc %>%
     neg_experiences_sum = rowSums(dplyr::across(all_of(
       c("V6_1r1", "V6_1r2", "V6_1r3", "V6_1r4", "V6_1r5")
     )), na.rm = TRUE),
-    any_neg_experiences = as.integer(V6_1r6 == 1 | V6_1r7 == 1)
+    any_neg_experiences = dplyr::case_when(
+      # Yes to "No negative experiences" -> 0L
+      V6_1r6 == 1 ~ 0L,
+      # Yes to "Prefer not to say" -> NA
+      V6_1r7 == 1 ~ NA_integer_,
+      # Item missing (case should not exist) -> NA
+      is.na(V6_1r7) ~ NA_integer_,
+      # No to "No negative experiences" -> 1L 
+      V6_1r6 == 0L ~ 1L,
+      # Residual values -> 99L (flag)
+      TRUE ~ 99L
+    )
   ) %>%
   dplyr::mutate(dplyr::across(
     .cols = c(V6_2r1:V6_4r3, V6_6),
@@ -132,8 +143,18 @@ dat_proc <- dat_proc %>%
                               V6_8 == 1, ., NA_integer_)
   )) %>%
   # V7_* negative experiences, colleagues
-  dplyr::mutate(any_neg_experiences_colleagues = as.integer(V7_1r5 == 1 |
-                                                             V7_1r6 == 1)) %>%
+  dplyr::mutate(any_neg_experiences_colleagues = dplyr::case_when(
+    # Yes to "No negative experiences" -> 0L
+    V7_1r5 == 1 ~ 0L,
+    # Yes to "Prefer not to say" -> NA
+    V7_1r6 == 1 ~ NA_integer_,
+    # Item missing (case should not exist) -> NA
+    is.na(V7_1r6) ~ NA_integer_,
+    # No to "No negative experiences" -> 1L 
+    V7_1r5 == 0L ~ 1L,
+    # Residual values -> 99L (flag)
+    TRUE ~ 99L
+  )) %>%
   dplyr::mutate(dplyr::across(
     .cols = c(
       all_of(c("V7_5", "V7_6")),
