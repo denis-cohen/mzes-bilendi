@@ -25,6 +25,7 @@ conditioning_vars <- c(
   "personal_ethnic",
   "personal_citiz",
   "personal_length_employ", 
+  "personal_refuse",
   "neg_experiences_sum",
   "any_neg_experiences",
   "any_neg_experiences_colleagues",
